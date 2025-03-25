@@ -4,12 +4,13 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 
-class User extends Authenticatable
+class Entreprise extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -47,9 +48,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function projets(): HasMany
+    public function projet(): BelongsToMany
     {
-        return $this->hasMany(Projet::class);
+        return $this->belongsToMany(Projet::class,'offre')->using(Offre::class);
 
+    }
+    public function retraits(): HasMany
+    {
+        return $this->hasMany(Retrait::class);
     }
 }

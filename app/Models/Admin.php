@@ -7,9 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 
-class User extends Authenticatable
+class Admin extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -47,9 +46,5 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function projets(): HasMany
-    {
-        return $this->hasMany(Projet::class);
 
-    }
 }
