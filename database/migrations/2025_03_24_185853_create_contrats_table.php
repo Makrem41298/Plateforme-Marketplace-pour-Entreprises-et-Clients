@@ -30,8 +30,8 @@ return new class extends Migration
 
             $table->text('termes');
 
-            $table->decimal('acompte', 10, 2)->nullable();
-            $table->decimal('solde', 10, 2)->nullable();
+            $table->decimal('premiere_tranche', 10, 2)->nullable();
+            $table->decimal('montant_total', 10, 2);
             $table->timestamp('signe_le')->nullable();
             $table->timestamps();
         });

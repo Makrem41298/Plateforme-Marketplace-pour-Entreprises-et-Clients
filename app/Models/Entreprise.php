@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SebastianBergmann\CodeCoverage\Report\Xml\Project;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Entreprise extends Authenticatable
+class Entreprise extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -48,13 +49,22 @@ class Entreprise extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function projet(): BelongsToMany
+    public function offre(): HasMany
     {
-        return $this->belongsToMany(Projet::class,'offre')->using(Offre::class);
+        return $this->hasMany(Offre::class);
 
     }
     public function retraits(): HasMany
     {
         return $this->hasMany(Retrait::class);
+    }
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
