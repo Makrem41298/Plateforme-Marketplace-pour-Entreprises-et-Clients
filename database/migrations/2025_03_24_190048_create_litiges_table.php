@@ -13,15 +13,11 @@ return new class extends Migration
     {
         Schema::create('litiges', function (Blueprint $table) {
             $table->id();
-
-
-
-
-            $table->foreignId('contrat_id')
-                ->nullable()
-                ->constrained()
-                ->onDelete('set null');
-
+            $table->string('reference')->unique();
+            $table->integer('litigeable_id');
+            $table->string('litigeable_type');
+            $table->string('reference_contrat');
+            $table->foreign('reference_contrat')->references('reference')->on('contrats')->onDelete();
             $table->string('titre');
             $table->text('description');
             $table->enum('statut', [

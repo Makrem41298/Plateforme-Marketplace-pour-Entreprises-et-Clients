@@ -7,6 +7,8 @@ use App\Http\Controllers\ProjetController;
 use App\Http\Controllers\AuthEntrepriseControlle;
 use App\Http\Controllers\OffreController;
 use App\Http\Controllers\ContratController;
+use App\Http\Controllers\LitigeController;
+use App\Http\Controllers\RetraitController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -57,4 +59,31 @@ Route::middleware(['jwtAuth:entreprise,client'])->group(function () {
 });
 Route::middleware(['jwtAuth:entreprise'])->group(function () {
     Route::post('/contrats', [ContratController::class, 'createContrat']);
+});
+
+
+Route::prefix('retraits')->group(function () {
+    Route::post('/', [RetraitController::class, 'store'])
+        ->middleware('jwtAuth:entreprise');
+    Route::put('/{reference}', [RetraitController::class, 'update'])
+        ->middleware('auth:admin');
+    Route::middleware('jwtAuth:entreprise,admin')->group(function () {
+        Route::get('/', [RetraitController::class, 'index']);
+        Route::get('/{reference}', [RetraitController::class, 'show']);
+        Route::delete('/{reference}', [RetraitController::class, 'destroy']);
+
+    });
+
+});
+
+Route::prefix('litiges')->group(function () {
+    Route::put('/{reference}', [LitigeController::class, 'updateLitige'])->middleware('jwtAuth:admin');
+    Route::post('/', [LitigeController::class, 'createLitige'])->middleware('jwtAuth:user,entreprise');
+    Route::delete('/{reference}', [LitigeController::class, 'destroy'])->middleware('jwtAuth:user,entreprise');
+    Route::middleware('jwtAuth:entreprise,admin,users')->group(function () {
+        Route::get('/', [LitigeController::class, 'getAllLitigeOrOrFiltrage']);
+        Route::get('/{reference}', [LitigeController::class, 'getLitige'])
+            ->middleware('auth:user,entreprise,admin');
+    });
+
 });

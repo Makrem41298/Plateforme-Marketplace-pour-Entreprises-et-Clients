@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SebastianBergmann\CodeCoverage\Report\Xml\Project;
@@ -66,5 +67,9 @@ class Entreprise extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+    public function litiges(): MorphMany
+    {
+        return $this->morphMany(Litige::class, 'litigeable');
     }
 }
