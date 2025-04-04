@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthClientControlle;
+use App\Http\Controllers\EntrepriseProfileController;
+use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\ProjetController;
@@ -9,10 +11,9 @@ use App\Http\Controllers\OffreController;
 use App\Http\Controllers\ContratController;
 use App\Http\Controllers\LitigeController;
 use App\Http\Controllers\RetraitController;
+use App\Http\Controllers\Admin\UserController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
 
 Route::prefix('auth/client/')->group(function () {
     Route::post('login', [AuthClientControlle::class, 'login']);
@@ -87,3 +88,30 @@ Route::prefix('litiges')->group(function () {
     });
 
 });
+
+
+
+Route::prefix('admin')->group(function () {
+    Route::middleware('jwtAuth:admin')->group(function () {
+        Route::get('clients', [UserController::class, 'getAllClients']);
+        Route::get('enterprises', [UserController::class, 'getAllEnterprises']);
+        Route::get('enterprises/{id}', [UserController::class, 'getEntreprise']);
+        Route::get('client/{id}', [UserController::class, 'getClient']);
+
+
+        Route::patch('client/{id}/status', [UserController::class, 'changeStatusClinet']);
+        Route::patch('enterprise/{id}/status', [UserController::class, 'changeStatusEntrprise']);
+        Route::delete('client/{id}', [UserController::class, 'destroyUser']);
+        Route::delete('enterprise/{id}', [UserController::class, 'destroyEntreprise']);
+    });
+    Route::prefix('client')->middleware('jwtAuth:client')->group(function () {
+        Route::get('profile', [UserProfileController::class, 'getProfileUser']);
+        Route::post('profile', [UserProfileController::class, 'updateProfileUser']);
+    });
+    Route::prefix('enterprise')->middleware('jwtAuth:entreprise')->group(function () {
+        Route::get('profile', [EntrepriseProfileController::class, 'getProfileEntreprise']);
+        Route::post('profile', [EntrepriseProfileController::class, 'updateProfileEntreprise']);
+    });
+
+});
+

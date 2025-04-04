@@ -47,6 +47,10 @@ return [
           'entreprise'=>[
             'driver' => 'jwt',
             'provider' => 'entreprises',
+          ],
+         'admin'=>[
+    'driver' => 'jwt',
+    'provider' => 'admins',
 ]
     ],
 
@@ -76,6 +80,11 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', App\Models\Entreprise::class),
         ],
+        'admins' => [
+            'driver' => 'eloquent',
+            'model' => env('AUTH_MODEL', App\Models\Admin::class),
+        ],
+
 
         // 'users' => [
         //     'driver' => 'database',

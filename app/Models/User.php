@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -71,5 +72,9 @@ class User extends Authenticatable implements JWTSubject
     public function litiges(): MorphMany
     {
         return $this->morphMany(Litige::class, 'litigeable');
+    }
+    public function profile(): HasOne
+    {
+        return $this->hasOne(ProfileUser::class);
     }
 }

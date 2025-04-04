@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\apiResponse;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -10,6 +11,7 @@ use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 
 class JwtMiddleware extends BaseMiddleware
 {
+    use apiResponse;
     /**
      * Handle an incoming request.
      *
@@ -22,7 +24,7 @@ class JwtMiddleware extends BaseMiddleware
     {
 
         if (empty($guards)) {
-            $guards = [null]; // Default guard
+            $guards = [null];
         }
 
         foreach ($guards as $guard) {
@@ -33,15 +35,19 @@ class JwtMiddleware extends BaseMiddleware
                 $user = auth($guard)->setToken(JWTAuth::getToken())->authenticate();
                 Log::info('Authenticated user:', ['user' => $user]);
                 log::info('Authenticated user:', ['user' => $user]);
+                if ($guard!=='admin') {
+                    $status=auth($guard)->user()->status_account;
+                    if ($status==='desactiver')
+                        return $this->apiResponse('your account is suspend pleas contact support',null,403);
+                }
 
                 return $next($request);
             } catch (Exception $e) {
-                // Continue to the next guard if authentication fails
                 continue;
             }
         }
 
-        // If no guard could authenticate the user, return an error response
-        return response()->json(['status' => 'Authorization Token not found'], 401);
+        return $this->apiResponse('Authorization Token not found',null,401);
+
     }
 }
