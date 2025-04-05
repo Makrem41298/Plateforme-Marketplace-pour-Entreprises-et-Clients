@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\ProfileUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class UserProfileController extends Controller
@@ -22,7 +24,7 @@ class UserProfileController extends Controller
                 return $this->apiResponse('Profile not found', null, 404);
             }
 
-            return $this->apiResponse('Profile retrieved successfully', $profile);
+            return $this->apiResponse('Profile retrieved successfully', $profile,200);
 
         } catch (\Exception $e) {
             return $this->apiResponse('Operation failed', null, 500);
@@ -43,7 +45,6 @@ class UserProfileController extends Controller
                 'phone' => 'nullable|string|max:20',
                 'address' => 'nullable|string|max:255',
                 'date_of_birth' => 'nullable|date|before:-18 years',
-                'avatar' => 'nullable|url|max:255'
             ]);
 
             if ($validator->fails()) {
@@ -55,10 +56,42 @@ class UserProfileController extends Controller
                 $validator->validated()
             );
 
-            return $this->apiResponse('Profile updated successfully', $profile);
+            return $this->apiResponse('Profile updated successfully', $profile,201);
 
         } catch (\Exception $e) {
             return $this->apiResponse('Operation failed', null, 500);
+        }
+    }
+    public function changePassword(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8|confirmed',
+                'new_password_confirmation' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->apiResponse('Validation error', $validator->errors(), 422);
+            }
+
+            $client = auth('client')->user();
+
+            if (!Hash::check($request->current_password, $client->password)) {
+                return $this->apiResponse('Current password is incorrect', null, 401);
+            }
+
+            $client->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            auth('client')->logout();
+
+            return $this->apiResponse('Password changed successfully',null,201);
+
+        } catch (\Exception $e) {
+            Log::error($e);
+            return $this->apiResponse('Password change failed', null, 500);
         }
     }
 }

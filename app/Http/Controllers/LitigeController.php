@@ -102,11 +102,11 @@ class LitigeController extends Controller
             $contrat = Contrat::where('reference', $request->reference_contrat)->firstOrFail();
 
             if (auth()->guard('entreprise')->check()) {
-                if ($contrat->offer->entreprise_id !== $litigeable->id) {
+                if ($contrat->offre->entreprise_id !== $litigeable->id) {
                     return $this->apiResponse('Unauthorized to create litige for this contrat', null, 403);
                 }
             } else {
-                if ($contrat->offer->projet->user_id !== $litigeable->id) {
+                if ($contrat->offre->projet->user_id !== $litigeable->id) {
                     return $this->apiResponse('Unauthorized to create litige for this contrat', null, 403);
                 }
             }
@@ -137,7 +137,8 @@ class LitigeController extends Controller
                     ? auth()->user()
                     : auth()->guard('admin')->user());
 
-            if ($litige->litigeable_id !== $litigeable->id || $litige->litigeable_type !== get_class($litigeable)&&!auth()->guard('admin')->check()) {
+
+            if (($litige->litigeable_id !== $litigeable->id || $litige->litigeable_type !== get_class($litigeable))&&!auth()->guard('admin')->check()) {
                 return $this->apiResponse('Unauthorized to view this litige', null, 403);
             }
 
@@ -190,8 +191,9 @@ class LitigeController extends Controller
     {
         try {
             $litige = Litige::where('reference', $reference)->firstOrFail();
-            if (!$litige->status=="ouvert"){
-                return $this->apiResponse('can not delete this litige', null, 404);
+            dump($litige);
+            if ($litige->statut!=="ouvert"){
+                return $this->apiResponse('can not delete this litige because is it not ouvert', null, 404);
 
             }
 
@@ -204,7 +206,7 @@ class LitigeController extends Controller
             }
 
             $litige->delete();
-            return $this->apiResponse('Litige deleted successfully', null, 200);
+            return $this->apiResponse('Litige deleted successfully', null, 204);
 
         } catch (ModelNotFoundException $e) {
             return $this->apiResponse('Litige not found', null, 404);

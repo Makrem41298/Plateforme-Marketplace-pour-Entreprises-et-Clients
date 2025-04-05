@@ -38,7 +38,7 @@ class JwtMiddleware extends BaseMiddleware
                 if ($guard!=='admin') {
                     $status=auth($guard)->user()->status_account;
                     if ($status==='desactiver')
-                        return $this->apiResponse('your account is suspend pleas contact support',null,403);
+                        return $this->apiResponse('your account is suspend please contact support',null,403);
                 }
 
                 return $next($request);

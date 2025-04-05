@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProfileUser extends Model
 {
     protected $guarded=[];
+    protected $table='user_profiles';
 
     public function user(): BelongsTo
     {

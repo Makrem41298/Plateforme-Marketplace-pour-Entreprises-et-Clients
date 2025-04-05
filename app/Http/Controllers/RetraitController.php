@@ -158,7 +158,7 @@ class RetraitController extends Controller
                 return $this->apiResponse('Withdrawal request deleted successfully', null, 200);
             }
 
-            return $this->apiResponse('Unauthorized to delete this withdrawal request', null, 403);
+            return $this->apiResponse('error to delete this withdrawal request', null, 422);
 
         } catch (ModelNotFoundException $e) {
             return $this->apiResponse('Withdrawal request not found', null, 404);

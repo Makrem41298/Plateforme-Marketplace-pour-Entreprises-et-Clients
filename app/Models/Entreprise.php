@@ -26,6 +26,7 @@ class Entreprise extends Authenticatable implements JWTSubject
     protected $fillable = [
         'name',
         'email',
+        'status_account',
         'password',
     ];
 

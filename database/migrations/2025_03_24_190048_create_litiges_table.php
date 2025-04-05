@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('litigeable_id');
             $table->string('litigeable_type');
             $table->string('reference_contrat');
-            $table->foreign('reference_contrat')->references('reference')->on('contrats')->onDelete();
+            $table->foreign('reference_contrat')->references('reference')->on('contrats')->onDelete('cascade');
             $table->string('titre');
             $table->text('description');
             $table->enum('statut', [

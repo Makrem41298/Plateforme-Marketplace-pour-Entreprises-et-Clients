@@ -38,7 +38,6 @@ class ContratController extends Controller
             if (auth()->guard('entreprise')->check()) {
                 $query = Contrat::entreprise();
             } else {
-                $user = auth()->user();
                 $query = Contrat::clinet();
             }
 
@@ -111,7 +110,7 @@ class ContratController extends Controller
             ];
 
             $validation = Validator::make($request->all(), [
-                'offre_id' => [
+                'offer_id' => [
                     'required',
                     Rule::exists('offres', 'id')->where(function ($query) {
                         $query->where('entreprise_id', auth()->guard('entreprise')->id());

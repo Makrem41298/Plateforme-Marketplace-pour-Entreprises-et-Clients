@@ -40,7 +40,10 @@ return new class extends Migration
 
             $table->text('notes_administratives')
                 ->nullable();
+            $table->timestamps();
         });
+
+
     }
 
     /**

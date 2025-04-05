@@ -32,7 +32,7 @@ class Contrat extends Model
 
     public function offre():BelongsTo
 {
-    return $this->belongsTo(Offre::class);
+    return $this->belongsTo(Offre::class,'offer_id');
 }
 public function litiges():HasMany
 {

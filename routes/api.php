@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuthAdminControlle;
 use App\Http\Controllers\AuthClientControlle;
 use App\Http\Controllers\EntrepriseProfileController;
 use App\Http\Controllers\UserProfileController;
@@ -11,7 +12,7 @@ use App\Http\Controllers\OffreController;
 use App\Http\Controllers\ContratController;
 use App\Http\Controllers\LitigeController;
 use App\Http\Controllers\RetraitController;
-use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\UserController;
 
 
 
@@ -33,11 +34,22 @@ Route::prefix('auth/entreprise/')->group(function () {
         Route::get('me', [AuthEntrepriseControlle::class, 'me']);
     });
 });
-
-Route::middleware('jwtAuth:client')->group(function () {
+Route::prefix('auth/admins/')->group(function () {
+    Route::post('login', [AuthAdminControlle::class, 'login']);
+    Route::middleware('jwtAuth:admin')->group(function () {
+        Route::post('logout', [AuthAdminControlle::class, 'logout']);
+        Route::post('refresh', [AuthAdminControlle::class, 'refresh']);
+        Route::get('me', [AuthAdminControlle::class, 'me']);
+    });
+});
+Route::middleware('jwtAuth:entreprise,client')->group(function () {
     Route::get('/projets', [ProjetController::class, 'getAllProjetsOrFiltrage']);
-    Route::post('/projets', [ProjetController::class, 'createProjet']);
     Route::get('/projets/{slug}', [ProjetController::class, 'getProjet']);
+
+
+});
+Route::middleware('jwtAuth:client')->group(function () {
+    Route::post('/projets', [ProjetController::class, 'createProjet']);
     Route::put('/projets/{slug}', [ProjetController::class, 'updateProjet']);
     Route::delete('/projets/{slug}', [ProjetController::class, 'deleteProjet']);
 });
@@ -67,7 +79,7 @@ Route::prefix('retraits')->group(function () {
     Route::post('/', [RetraitController::class, 'store'])
         ->middleware('jwtAuth:entreprise');
     Route::put('/{reference}', [RetraitController::class, 'update'])
-        ->middleware('auth:admin');
+        ->middleware('jwtAuth:admin');
     Route::middleware('jwtAuth:entreprise,admin')->group(function () {
         Route::get('/', [RetraitController::class, 'index']);
         Route::get('/{reference}', [RetraitController::class, 'show']);
@@ -79,12 +91,11 @@ Route::prefix('retraits')->group(function () {
 
 Route::prefix('litiges')->group(function () {
     Route::put('/{reference}', [LitigeController::class, 'updateLitige'])->middleware('jwtAuth:admin');
-    Route::post('/', [LitigeController::class, 'createLitige'])->middleware('jwtAuth:user,entreprise');
-    Route::delete('/{reference}', [LitigeController::class, 'destroy'])->middleware('jwtAuth:user,entreprise');
-    Route::middleware('jwtAuth:entreprise,admin,users')->group(function () {
+    Route::post('/', [LitigeController::class, 'createLitige'])->middleware('jwtAuth:client,entreprise');
+    Route::delete('/{reference}', [LitigeController::class, 'destroy'])->middleware('jwtAuth:client,entreprise');
+    Route::middleware('jwtAuth:entreprise,admin,client')->group(function () {
         Route::get('/', [LitigeController::class, 'getAllLitigeOrOrFiltrage']);
-        Route::get('/{reference}', [LitigeController::class, 'getLitige'])
-            ->middleware('auth:user,entreprise,admin');
+        Route::get('/{reference}', [LitigeController::class, 'getLitige']);
     });
 
 });
@@ -99,19 +110,26 @@ Route::prefix('admin')->group(function () {
         Route::get('client/{id}', [UserController::class, 'getClient']);
 
 
-        Route::patch('client/{id}/status', [UserController::class, 'changeStatusClinet']);
-        Route::patch('enterprise/{id}/status', [UserController::class, 'changeStatusEntrprise']);
+        Route::put('client/{id}', [UserController::class, 'changeStatusClinet']);
+        Route::put('enterprise/{id}', [UserController::class, 'changeStatusEntrprise']);
         Route::delete('client/{id}', [UserController::class, 'destroyUser']);
         Route::delete('enterprise/{id}', [UserController::class, 'destroyEntreprise']);
-    });
-    Route::prefix('client')->middleware('jwtAuth:client')->group(function () {
-        Route::get('profile', [UserProfileController::class, 'getProfileUser']);
-        Route::post('profile', [UserProfileController::class, 'updateProfileUser']);
-    });
-    Route::prefix('enterprise')->middleware('jwtAuth:entreprise')->group(function () {
-        Route::get('profile', [EntrepriseProfileController::class, 'getProfileEntreprise']);
-        Route::post('profile', [EntrepriseProfileController::class, 'updateProfileEntreprise']);
+        Route::put('change_password', [UserController::class, 'changePasswordAdmin']);
+
     });
 
+
+
+});
+Route::prefix('client')->middleware('jwtAuth:client')->group(function () {
+    Route::get('profile', [UserProfileController::class, 'getProfileUser']);
+    Route::put('profile', [UserProfileController::class, 'updateProfileUser']);
+    Route::put('change_password', [UserProfileController::class, 'changePassword']);
+
+});
+Route::prefix('enterprise')->middleware('jwtAuth:entreprise')->group(function () {
+    Route::get('profile', [EntrepriseProfileController::class, 'getProfileEntreprise']);
+    Route::put('profile', [EntrepriseProfileController::class, 'updateProfileEntreprise']);
+    Route::put('change_password', [EntrepriseProfileController::class, 'changePassword']);
 });
 
