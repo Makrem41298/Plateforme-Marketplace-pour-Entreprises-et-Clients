@@ -105,14 +105,19 @@ class UserController extends Controller
     public function changeStatusClinet(Request $request, $id)
     {
         try {
-            $user = User::findOrFail($id);
 
-            $validated = $request->validate([
+
+            $validator=Validator::make($request->all(),[
                 'status' => ['sometimes', Rule::in(['active', 'desactiver'])]
             ]);
+            if($validator->fails()){
+                return $this->apiResponse('Validation error', $validator->errors(), 422);
+            }
+            $user = User::findOrFail($id);
 
 
-            $user->update($validated);
+
+            $user->update($validator->validated());
 
             return $this->apiResponse('User updated successfully', $user);
 
@@ -128,12 +133,14 @@ class UserController extends Controller
         try {
             $entreprise = Entreprise::findOrFail($id);
 
-            $validated = $request->validate([
+            $validator=Validator::make($request->all(),[
                 'status' => ['sometimes', Rule::in(['active', 'desactiver'])]
             ]);
+            if($validator->fails()){
+                return $this->apiResponse('Validation error', $validator->errors(), 422);
+            }
 
-
-            $entreprise->update($validated);
+            $entreprise->update($validator->validated());
 
             return $this->apiResponse('Entreprise updated successfully', $entreprise);
 

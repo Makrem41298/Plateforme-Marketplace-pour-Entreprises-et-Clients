@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ProfileEntreprise;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -42,7 +43,6 @@ class EntrepriseProfileController extends Controller
     public function updateProfileEntreprise(Request $request)
     {
         try {
-            $entreprise = auth('entreprise')->user();
 
             $validator = Validator::make($request->all(), [
                 'address' => 'sometimes|string|max:255',
@@ -65,6 +65,8 @@ class EntrepriseProfileController extends Controller
             if ($validator->fails()) {
                 return $this->apiResponse('Validation error', $validator->errors(), 422);
             }
+            $entreprise = auth('entreprise')->user();
+
 
             $profile = $entreprise->profile()->updateOrCreate(
                 ['entreprise_id' => $entreprise->id],
@@ -76,6 +78,41 @@ class EntrepriseProfileController extends Controller
         } catch (\Exception $e) {
             return $this->apiResponse('Operation failed', null, 500);
         }
+
     }
+
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8|confirmed',
+                'new_password_confirmation' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->apiResponse('Validation error', $validator->errors(), 422);
+            }
+
+            $entreprise = auth('entreprise')->user();
+
+            if (!Hash::check($request->current_password, $entreprise->password)) {
+                return $this->apiResponse('Current password is incorrect', null, 401);
+            }
+
+            $entreprise->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+
+            auth('entreprise')->logout();
+
+            return $this->apiResponse('Password changed successfully');
+
+        } catch (\Exception $e) {
+            return $this->apiResponse('Password change failed', null, 500);
+        }
+    }
+
 
 }
