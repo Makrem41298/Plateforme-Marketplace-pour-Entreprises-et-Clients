@@ -5,7 +5,6 @@ use App\Http\Controllers\AuthClientControlle;
 use App\Http\Controllers\EntrepriseProfileController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\ProjetController;
 use App\Http\Controllers\AuthEntrepriseControlle;
 use App\Http\Controllers\OffreController;
@@ -13,6 +12,7 @@ use App\Http\Controllers\ContratController;
 use App\Http\Controllers\LitigeController;
 use App\Http\Controllers\RetraitController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MessageController;
 
 
 
@@ -118,8 +118,6 @@ Route::prefix('admin')->group(function () {
 
     });
 
-
-
 });
 Route::prefix('client')->middleware('jwtAuth:client')->group(function () {
     Route::get('profile', [UserProfileController::class, 'getProfileUser']);
@@ -132,3 +130,12 @@ Route::prefix('enterprise')->middleware('jwtAuth:entreprise')->group(function ()
     Route::put('profile', [EntrepriseProfileController::class, 'updateProfileEntreprise']);
     Route::put('change_password', [EntrepriseProfileController::class, 'changePassword']);
 });
+
+Route::middleware('jwtAuth:entreprise,admin,client')->group(function () {
+    Route::post('/messages', [MessageController::class, 'send']);
+    Route::get('/messages', [MessageController::class, 'index']);
+    Route::get('/conversation/{receiverId}/{receiverType}', [MessageController::class, 'conversation']);
+    Route::put('/messages/{id}/read', [MessageController::class, 'markAsRead']);
+});
+
+

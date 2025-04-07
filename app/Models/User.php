@@ -78,4 +78,13 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(ProfileUser::class);
     }
+    public function sentMessages()
+    {
+        return $this->morphMany(Message::class, 'sender');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->morphMany(Message::class, 'receiver');
+    }
 }
