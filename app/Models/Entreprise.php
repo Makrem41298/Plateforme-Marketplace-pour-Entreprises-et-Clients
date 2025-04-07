@@ -79,4 +79,8 @@ class Entreprise extends Authenticatable implements JWTSubject
     {
         return $this->hasOne(ProfileEntreprise::class);
     }
+    public function messages(): MorphMany
+    {
+        return $this->morphMany(Message::class, 'messageable');
+    }
 }

@@ -13,6 +13,7 @@ use App\Http\Controllers\ContratController;
 use App\Http\Controllers\LitigeController;
 use App\Http\Controllers\RetraitController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MessageController;
 
 
 
@@ -118,8 +119,6 @@ Route::prefix('admin')->group(function () {
 
     });
 
-
-
 });
 Route::prefix('client')->middleware('jwtAuth:client')->group(function () {
     Route::get('profile', [UserProfileController::class, 'getProfileUser']);
@@ -132,3 +131,11 @@ Route::prefix('enterprise')->middleware('jwtAuth:entreprise')->group(function ()
     Route::put('profile', [EntrepriseProfileController::class, 'updateProfileEntreprise']);
     Route::put('change_password', [EntrepriseProfileController::class, 'changePassword']);
 });
+Route::middleware('jwtAuth:entreprise,admin,client')->group(function () {
+    Route::get('/messages/conversation/{receiverId}/{receiverType}', [MessageController::class, 'conversation']);
+    Route::post('/messages/send', [MessageController::class, 'send']);
+    Route::put('/messages/{id}/read', [MessageController::class, 'markAsRead']);
+});
+
+
+
