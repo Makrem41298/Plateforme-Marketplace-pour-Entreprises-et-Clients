@@ -132,4 +132,3 @@ Route::prefix('enterprise')->middleware('jwtAuth:entreprise')->group(function ()
     Route::put('profile', [EntrepriseProfileController::class, 'updateProfileEntreprise']);
     Route::put('change_password', [EntrepriseProfileController::class, 'changePassword']);
 });
-
