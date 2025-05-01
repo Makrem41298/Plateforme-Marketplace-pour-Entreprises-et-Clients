@@ -2,12 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Entreprise;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-
-class AuthAdminControlle extends Controller
+class AuthAdminController extends Controller
 {
     use apiResponse;
     /**
@@ -27,6 +23,16 @@ class AuthAdminControlle extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
+
+        $validation=Validator::make($credentials,[
+            'email'=>'required|email',
+            'password'=>'required'
+
+        ]);
+        if($validation->fails()){
+            return $this->apiResponse($validation->errors()->first(),null,422);
+        }
+
 
         if (! $token = auth('admin')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized'], 401);

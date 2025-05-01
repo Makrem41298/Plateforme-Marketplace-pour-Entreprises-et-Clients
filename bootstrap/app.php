@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class. ':api',
             'jwtAuth'=>App\Http\Middleware\JwtMiddleware::class,
+            'verifiedEmail' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+
         ]);
 
     })

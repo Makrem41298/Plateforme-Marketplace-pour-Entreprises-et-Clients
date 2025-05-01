@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Entreprise;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -30,9 +31,16 @@ class AuthEntrepriseControlle extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
+        $validation=Validator::make($credentials,[
+            'email'=>'required|email',
+            'password'=>'required'
+        ]);
+        if($validation->fails()){
+            return $this->apiResponse($validation->errors()->first(),null,422);
+        }
 
         if (! $token = auth('entreprise')->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return $this->apiResponse('email ou password sont incorrects',null,401);
         }
 
         return $this->respondWithToken($token);
@@ -57,16 +65,13 @@ class AuthEntrepriseControlle extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse(
-                    'Erreurs de validation',
-                    ['errors' => $validation->errors()],
-                    422
-                );
+                return $this->apiResponse('Erreurs de validation', $validation->errors()->first(), 422);
             }
             DB::beginTransaction();
-            $client=Entreprise::create($request->except('confirm_password'));
+            $enterprise=Entreprise::create($request->except('confirm_password'));
+            event(new Registered($enterprise));
             DB::commit();
-            return $this->apiResponse('Entreprise est creation avec succes', $client,201);
+            return $this->apiResponse('Entreprise est creation avec succes', $enterprise,201);
 
 
         }catch (\Exception $e){
@@ -76,6 +81,32 @@ class AuthEntrepriseControlle extends Controller
         }
 
     }
+    public function verifyEmail( $id, $hash) {
+        $user = Entreprise::findOrFail($id);
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return $this->apiResponse('Invalid verification link',null,400) ;
+        }
+        if ($user->hasVerifiedEmail()) {
+            return $this->apiResponse('Email  verified',null,400) ;
+        }
+        $user->markEmailAsVerified();
+        return $this->apiResponse('Email has been verify with  successfully',null,200) ;
+
+
+    }
+    public function resendVerificationEmail(Request $request)
+    {
+        $user = $request->user('entreprise');
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->apiResponse('Email already verified', null, 400);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return $this->apiResponse('Verification link resent', null, 200);
+    }
+
 
     /**
      * Get the authenticated User.
@@ -84,7 +115,7 @@ class AuthEntrepriseControlle extends Controller
      */
     public function me()
     {
-        return response()->json(auth('entreprise')->user());
+        return $this->apiResponse('client récupération avec succes',auth('entreprise')->user(),200);
     }
 
     /**
@@ -95,9 +126,9 @@ class AuthEntrepriseControlle extends Controller
     public function logout()
     {
         auth('entreprise')->logout();
-
-        return response()->json(['message' => 'Successfully logged out']);
+        return $this->apiResponse('logout avec succes',null,200);
     }
+
 
     /**
      * Refresh a token.

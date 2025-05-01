@@ -9,6 +9,39 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * 
+ *
+ * @property int $id
+ * @property string $titre
+ * @property string $slug
+ * @property string $description
+ * @property string|null $budget
+ * @property int $user_id
+ * @property string $status
+ * @property string $type
+ * @property int|null $Delai
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\User|null $client
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Offre> $offre
+ * @property-read int|null $offre_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereBudget($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereDelai($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereSlug($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereTitre($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Projet whereUserId($value)
+ * @mixin \Eloquent
+ */
 class Projet extends Model
 {
     protected $guarded=[];

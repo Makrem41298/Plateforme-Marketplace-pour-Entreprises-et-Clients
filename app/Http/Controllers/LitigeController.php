@@ -29,7 +29,7 @@ class LitigeController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Validation error', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(), null, 422);
             }
 
             $validated = $validation->validated();
@@ -91,7 +91,7 @@ class LitigeController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Validation error', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(), null, 422);
             }
 
             $litigeable = auth()->guard('entreprise')->check()
@@ -162,7 +162,7 @@ class LitigeController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Validation error', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(), null, 422);
             }
 
 

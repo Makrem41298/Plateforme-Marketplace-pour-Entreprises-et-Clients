@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
-class AuthClientControlle extends Controller
+class AuthClientController extends Controller
 {
     use apiResponse;
     /**
@@ -30,8 +31,17 @@ class AuthClientControlle extends Controller
     {
         $credentials = request(['email', 'password']);
 
+        $validation=Validator::make($credentials,[
+            'email'=>'required|email',
+            'password'=>'required'
+        ]);
+        if($validation->fails()){
+            return $this->apiResponse($validation->errors()->first(),null,422);
+        }
+
+
         if (! $token = auth('client')->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return $this->apiResponse('email ou password sont incorrects',null,401);
         }
 
         return $this->respondWithToken($token);
@@ -57,13 +67,18 @@ class AuthClientControlle extends Controller
 
             if ($validation->fails()) {
                 return $this->apiResponse(
-                    'Erreurs de validation',
-                    ['errors' => $validation->errors()],
+                    $validation->errors()->first(),
+                    null,
                     422
                 );
             }
             DB::beginTransaction();
-            $client=User::create($request->except('confirm_password'));
+            $client = User::create($request->except('confirm_password'));
+            event(new Registered($client));
+
+
+
+
             DB::commit();
             return $this->apiResponse('client est creation avec succes', $client,201);
 
@@ -75,6 +90,33 @@ class AuthClientControlle extends Controller
         }
 
     }
+    public function verifyEmail( $id, $hash) {
+        $user = User::findOrFail($id);
+        if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
+            return $this->apiResponse('Invalid verification link',null,400) ;
+        }
+        if ($user->hasVerifiedEmail()) {
+            return $this->apiResponse('Email  verified',null,400) ;
+        }
+        $user->markEmailAsVerified();
+        return $this->apiResponse('Email has been verify with  successfully',null,200) ;
+
+
+    }
+    public function resendVerificationEmail(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return $this->apiResponse('Email already verified', null, 400);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return $this->apiResponse('Verification link resent', null, 200);
+    }
+
+
 
     /**
      * Get the authenticated User.
@@ -83,7 +125,7 @@ class AuthClientControlle extends Controller
      */
     public function me()
     {
-        return response()->json(auth()->user());
+        return $this->apiResponse('client récupération avec succes',auth()->user(),200);
     }
 
     /**
@@ -95,7 +137,7 @@ class AuthClientControlle extends Controller
     {
         auth()->logout();
 
-        return response()->json(['message' => 'Successfully logged out']);
+        return $this->apiResponse('logout avec succes',null,200);
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,7 +14,46 @@ use Illuminate\Notifications\Notifiable;
 use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class Entreprise extends Authenticatable implements JWTSubject
+/**
+ *
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property \Illuminate\Support\Carbon|null $email_verified_at
+ * @property string $password
+ * @property string $status_account
+ * @property string|null $remember_token
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Litige> $litiges
+ * @property-read int|null $litiges_count
+ * @property-read \Illuminate\Notifications\DatabaseNotificationCollection<int, \Illuminate\Notifications\DatabaseNotification> $notifications
+ * @property-read int|null $notifications_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Offre> $offre
+ * @property-read int|null $offre_count
+ * @property-read \App\Models\ProfileEntreprise|null $profile
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Message> $receivedMessages
+ * @property-read int|null $received_messages_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Retrait> $retraits
+ * @property-read int|null $retraits_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Message> $sentMessages
+ * @property-read int|null $sent_messages_count
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereEmail($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereEmailVerifiedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise wherePassword($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereRememberToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereStatusAccount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Entreprise whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
+class Entreprise extends Authenticatable implements JWTSubject,MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
