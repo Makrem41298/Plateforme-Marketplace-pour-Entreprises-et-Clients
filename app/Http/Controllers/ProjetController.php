@@ -15,14 +15,15 @@ class ProjetController extends Controller
 
     public function getAllProjetsOrFiltrage(Request $request)
     {
+
         try {
             $validation = Validator::make($request->all(), [
-                'titre'        => 'sometimes|string|min:5|max:255',
+                'titre'        => 'sometimes|string',
                 'budget_min'   => 'sometimes|numeric|gte:0',
                 'budget_max'   => 'sometimes|numeric|gt:budget_min',
                 'type'         => ['sometimes', Rule::in(Projet::getAvailableTypes())],
-                'sort_budget'  => 'sometimes|in:desc,asc',
-                'sort_date'    => 'sometimes|in:asc,desc',
+                'sort_field'   => 'sometimes|required_with:sort_order|in:budget,date',
+                'sort_order'   => 'sometimes|required_with:sort_field|in:asc,desc',
                 'date_start'   => 'sometimes|date',
                 'date_end'     => 'sometimes|date|after_or_equal:date_start',
                 'per_page'     => 'sometimes|integer|min:1|max:100',
@@ -34,21 +35,17 @@ class ProjetController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Erreur de validation', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(),null , 422);
             }
 
             $validated = $validation->validated();
-            if (auth()->guard('entreprise')->check() )
-                $query= Projet::query();
-            else {
+
+            if (auth()->guard('entreprise')->check()) {
+                $query = Projet::query();
+            } else {
                 $user = auth()->user();
-                $query= $user->projets();
+                $query = $user->projets();
             }
-
-
-
-
-
 
             $query->when(isset($validated['titre']), function ($q) use ($validated) {
                 $q->where('titre', 'LIKE', '%' . $validated['titre'] . '%');
@@ -70,12 +67,14 @@ class ProjetController extends Controller
                 $q->whereBetween('created_at', [$validated['date_start'], $validated['date_end']]);
             });
 
-            $query->when(isset($validated['sort_budget']), function ($q) use ($validated) {
-                $q->orderBy('budget', $validated['sort_budget']);
+            $query->when(isset($validated['sort_field']), function ($q) use ($validated) {
+                if ($validated['sort_field'] == 'date') {
+                    $validated['sort_field'] = 'created_at';
+                }
+                $q->orderBy($validated['sort_field'], $validated['sort_order']);
             });
-
-            $query->when(isset($validated['sort_date']), function ($q) use ($validated) {
-                $q->orderBy('created_at', $validated['sort_date']);
+            $query->when(!(isset($validated['sort_field'])), function ($q) use ($validated) {
+                $q->orderBy('created_at', 'DESC');
             });
 
             $perPage = $validated['per_page'] ?? 10;
@@ -87,10 +86,9 @@ class ProjetController extends Controller
             );
 
         } catch (\Exception $e) {
-            return $this->apiResponse($e->getMessage() , null, 500);
+            return $this->apiResponse($e->getMessage(), null, 500);
         }
-    }
-    public function createProjet(Request $request)
+    }    public function createProjet(Request $request)
     {
         try {
             $validation = Validator::make($request->all(), [
@@ -112,7 +110,7 @@ class ProjetController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Erreur de validation', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(),null , 422);
             }
 
             $client = auth()->user();
@@ -146,7 +144,7 @@ class ProjetController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Erreur de validation', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(),null , 422);
             }
 
             $client = auth()->user();
@@ -163,7 +161,7 @@ class ProjetController extends Controller
             return $this->apiResponse('Projet mis à jour avec succès', $projet->fresh(), 200);
 
         } catch (ModelNotFoundException $e) {
-            return $this->apiResponse($e->getMessage(), null, 404);
+            return $this->apiResponse("projet  introuvable", null, 404);
         } catch (\Exception $e) {
             \Log::error('Erreur mise à jour projet : ' . $e->getMessage());
             return $this->apiResponse($e->getMessage(), null, 500);

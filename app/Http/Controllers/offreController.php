@@ -20,7 +20,7 @@ class OffreController extends Controller
     {
         try {
             $validation = Validator::make($request->all(), [
-                'montant_min' => 'sometimes|numeric|min:0|lt:montant_max',
+                'montant_min' => ['sometimes|numeric|min:0|lt:montant_max'],
                 'montant_max' => 'sometimes|numeric|gt:montant_min',
                 'statut' => ['sometimes', Rule::in(Offre::getAvailableStatus())],
                 'date_debut' => 'sometimes|date|before_or_equal:date_fin',

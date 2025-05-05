@@ -20,6 +20,16 @@ Route::get('/email/verify/{id}/{hash}', [AuthClientController::class, 'verifyEma
 
 Route::post('/email/resend', [AuthClientController::class, 'resendVerificationEmail'])->middleware('jwtAuth:client',)
     ->name('verification.resend');
+Route::prefix('auth/entreprise/')->group(function () {
+    Route::post('login', [AuthEntrepriseControlle::class, 'login']);
+    Route::post('register', [AuthEntrepriseControlle::class, 'register']);
+    Route::middleware('jwtAuth:entreprise')->group(function () {
+        Route::post('logout', [AuthEntrepriseControlle::class, 'logout']);
+        Route::post('refresh', [AuthEntrepriseControlle::class, 'refresh']);
+        Route::get('me', [AuthEntrepriseControlle::class, 'me']);
+    });
+});
+
 Route::prefix('auth/client/')->group(function () {
     Route::post('login', [AuthClientController::class, 'login']);
     Route::post('register', [AuthClientController::class, 'register']);
@@ -34,15 +44,6 @@ Route::prefix('auth/client/')->group(function () {
 Route::get('enterprise/email/verify/{id}/{hash}', [AuthEntrepriseControlle::class, 'verifyEmail']);
 Route::post('enterprise/email/resend', [AuthEntrepriseControlle::class, 'resendVerificationEmail'])->middleware('jwtAuth:entreprise',);
 
-Route::prefix('auth/entreprise/')->group(function () {
-    Route::post('login', [AuthEntrepriseControlle::class, 'login']);
-    Route::post('register', [AuthEntrepriseControlle::class, 'register']);
-    Route::middleware('jwtAuth:entreprise')->group(function () {
-        Route::post('logout', [AuthEntrepriseControlle::class, 'logout']);
-        Route::post('refresh', [AuthEntrepriseControlle::class, 'refresh']);
-        Route::get('me', [AuthEntrepriseControlle::class, 'me']);
-    });
-});
 Route::prefix('auth/admins/')->group(function () {
     Route::post('login', [AuthAdminController::class, 'login']);
     Route::middleware('jwtAuth:admin')->group(function () {
