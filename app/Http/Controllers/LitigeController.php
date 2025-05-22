@@ -6,7 +6,6 @@ use App\Models\Contrat;
 use App\Models\Litige;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -14,12 +13,12 @@ class LitigeController extends Controller
 {
     use apiResponse;
 
-    public function getAllLitigeOrOrFiltrage(Request $request)
+    public function getAllLitigeWithFiltrage(Request $request)
     {
         try {
             $validation = Validator::make($request->all(), [
                 'statut' => ['sometimes', Rule::in(['ouvert', 'en_investigation', 'resolu', 'ferme'])],
-                'type' => ['sometimes', Rule::in(['paiement', 'livraison', 'qualite', 'delai', 'autre'])],
+                'sujet' => ['sometimes', Rule::in(['paiement', 'livraison', 'qualite', 'delai', 'autre'])],
                 'reference_contrat' => 'sometimes|exists:contrats,reference',
                 'sort' => 'sometimes|in:created_at,updated_at',
                 'order' => 'sometimes|in:asc,desc',
@@ -49,8 +48,8 @@ class LitigeController extends Controller
                 $q->where('statut', $validated['statut']);
             });
 
-            $query->when(isset($validated['type']), function ($q) use ($validated) {
-                $q->where('type', $validated['type']);
+            $query->when(isset($validated['sujet']), function ($q) use ($validated) {
+                $q->where('sujet', $validated['sujet']);
             });
 
             $query->when(isset($validated['reference_contrat']), function ($q) use ($validated) {
@@ -87,7 +86,7 @@ class LitigeController extends Controller
                 'titre' => 'required|string|max:255',
                 'description' => 'required|string|min:20',
                 'reference_contrat' => 'required|exists:contrats,reference',
-                'type' => ['required', Rule::in(['paiement', 'livraison', 'qualite', 'delai', 'autre'])],
+                'sujet' => ['required', Rule::in(['paiement', 'livraison', 'qualite', 'delai', 'autre'])],
             ]);
 
             if ($validation->fails()) {

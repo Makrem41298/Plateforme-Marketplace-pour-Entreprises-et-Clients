@@ -11,18 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('offres', function (Blueprint $table) {
+        Schema::create('transcations', function (Blueprint $table) {
             $table->id();
-            $table->integer('montant_propose');
-            $table->integer('delai');
-            $table->text('description');
-            $table->foreignId('projet_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('entreprise_id')->constrained()->cascadeOnDelete();
+            $table->date('date_effctue');
             $table->enum('statut', [
                 'en_attente',
-                'acceptee',
-                'rejetee',
-            ])->default('en_attente');
+                'effctue',
+            ]);
+            $table->enum('methode_paiment',[
+                'carte_credit',
+                'paypal'
+            ]);
             $table->timestamps();
         });
     }
@@ -32,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('offres');
+        Schema::dropIfExists('transcations');
     }
 };

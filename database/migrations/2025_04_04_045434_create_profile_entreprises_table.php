@@ -23,9 +23,6 @@ return new class extends Migration {
             $table->string('sector');
             $table->enum('company_type', ['LLC', 'SA', 'SARL', 'SNC', 'EI', 'Other']);
             $table->string('linkedin_url')->nullable();
-            $table->string('facebook_url')->nullable();
-            $table->string('twitter_handle')->nullable();
-            $table->string('instagram_url')->nullable();
             $table->integer('employees_count');
             $table->timestamps();
         });

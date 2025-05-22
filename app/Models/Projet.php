@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property string $titre
@@ -47,7 +47,7 @@ class Projet extends Model
     protected $guarded=[];
     public function client():BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
     }
     public function offre(): HasMany
     {

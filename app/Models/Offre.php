@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property string $montant_propose
@@ -41,7 +41,7 @@ class Offre extends Model
     public $table = 'offres';
     protected $guarded;
     public function contrat():HasOne{
-        return $this->hasOne(Contrat::class);
+        return $this->hasOne(Contrat::class,'offer_id',);
     }
     public static function getAvailableStatus()
     {

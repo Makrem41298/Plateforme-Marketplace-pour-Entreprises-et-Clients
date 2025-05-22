@@ -17,7 +17,11 @@ class EnsureEmailIsVerified
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth('client')->user()->hasVerifiedEmail()) {
+        if (auth('client')->check() && !auth('client')->user()->hasVerifiedEmail()) {
+
+            return $this->apiResponse('Email not verified',null,403);
+        }
+        if (auth('entreprise')->check() && !auth('entreprise')->user()->hasVerifiedEmail()) {
 
             return $this->apiResponse('Email not verified',null,403);
         }

@@ -20,7 +20,7 @@ class OffreController extends Controller
     {
         try {
             $validation = Validator::make($request->all(), [
-                'montant_min' => ['sometimes|numeric|min:0|lt:montant_max'],
+                'montant_min' => 'sometimes|numeric|gte:0',
                 'montant_max' => 'sometimes|numeric|gt:montant_min',
                 'statut' => ['sometimes', Rule::in(Offre::getAvailableStatus())],
                 'date_debut' => 'sometimes|date|before_or_equal:date_fin',
@@ -35,46 +35,20 @@ class OffreController extends Controller
                 'date_fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début',
             ]);
 
+
             if ($validation->fails()) {
-                return $this->apiResponse('Erreur de validation', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(), null, 422);
             }
 
+            $validated = $validation->validated();
             $entreprise = auth('entreprise')->user();
-            $query = Offre::with(['projet' => fn($q) => $q->select('id', 'titre')])
-                ->where('entreprise_id', $entreprise->id)
-                ->select('offres.*');
-
-            $query->when($request->filled(['montant_min', 'montant_max']),
-                fn($q) => $q->whereBetween('montant_propose', [
-                    $request->montant_min,
-                    $request->montant_max
-                ])
-            );
-
-            // Statut filter
-            $query->when($request->filled('statut'),
-                fn($q) => $q->where('statut', $request->statut)
-            );
+            $query = Offre::with([
+                'projet.client:id,name','projet:id,user_id,slug,titre'
+            ])->where('entreprise_id', $entreprise->id);
 
 
-            $query->when($request->filled(['date_debut', 'date_fin']),
-                fn($q) => $q->whereBetween('created_at', [
-                    $request->date_debut,
-                    $request->date_fin.' 23:59:59'
-                ])
-            );
-
-            $query->when($request->filled('projet_titre'),
-                fn($q) => $q->whereHas('projet',
-                    fn($sub) => $sub->where('titre', 'ILIKE', "%{$request->projet_titre}%")
-                )
-            );
-
-            $sortField = $request->input('sort_by', 'created_at');
-            $sortOrder = $request->input('sort_order', 'desc');
-            $query->orderBy($sortField, $sortOrder);
-
-            $perPage = $request->input('per_page', 10);
+            $query=$this->filter($query, $validated);
+            $perPage = $validated['per_page'] ?? 10;
             $offres = $query->paginate($perPage);
 
             return $this->apiResponse(
@@ -111,7 +85,7 @@ class OffreController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Erreur de validation', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(), null, 422);
             }
 
             DB::beginTransaction();
@@ -148,23 +122,23 @@ class OffreController extends Controller
             ]);
 
             if ($validation->fails()) {
-                return $this->apiResponse('Erreur de validation', $validation->errors(), 422);
+                return $this->apiResponse($validation->errors()->first(), null, 422);
+            }
+             $validationData=$validation->validated();
+            if (auth('entreprise')->check()){
+                if (isset($validationData['status'])) {
+                    return $this->apiResponse(
+                        'Modification impossible modifer status les offres ',
+                        null,
+                        403
+                    );
+                }
+                $entreprise = auth('entreprise')->user();
+                $offre = Offre::where('entreprise_id', $entreprise->id)
+                    ->findOrFail($offre_id);
             }
 
-            $entreprise = auth('entreprise')->user();
-            $offre = Offre::where('entreprise_id', $entreprise->id)
-                ->findOrFail($offre_id);
-
-            // Prevent modification of accepted offers
-            if ($offre->statut === 'acceptee') {
-                return $this->apiResponse(
-                    'Modification impossible pour les offres acceptées',
-                    null,
-                    403
-                );
-            }
-
-            $offre->update($validation->validated());
+            $offre->update($validationData);
 
             return $this->apiResponse(
                 'Offre mise à jour avec succès',
@@ -224,4 +198,82 @@ class OffreController extends Controller
             return $this->apiResponse('Erreur récupération', null, 500);
         }
     }
+    public function getOffreClient($slug, Request $request)
+    {
+        try {
+            $validation = Validator::make($request->all(), [
+                'montant_min' => ['sometimes', 'numeric', 'min:0', 'lt:montant_max'],
+                'montant_max' => ['sometimes', 'numeric', 'gt:montant_min'],
+                'statut' => ['sometimes', Rule::in(Offre::getAvailableStatus())],
+                'date_debut' => 'sometimes|date|before_or_equal:date_fin',
+                'date_fin' => 'sometimes|date|after_or_equal:date_debut',
+                'sort_by' => 'sometimes|in:created_at,montant_propose,delai',
+                'sort_order' => 'sometimes|in:asc,desc',
+                'per_page' => 'sometimes|integer|min:1|max:100',
+            ], [
+                'montant_max.gt' => 'Le montant maximum doit être supérieur au montant minimum',
+                'statut.in' => 'Statut non valide',
+                'date_fin.after_or_equal' => 'La date de fin doit être postérieure ou égale à la date de début',
+            ]);
+
+            if ($validation->fails()) {
+                return $this->apiResponse($validation->errors()->first(), null, 422);
+            }
+
+            $validated = $validation->validated();
+            $client = auth('client')->user();
+
+            $query = Offre::whereHas('projet', function ($q) use ($client, $slug) {
+                $q->where('user_id', $client->id)
+                    ->where('slug', $slug);
+            })->with('entreprise:id,name');
+            $query=$this->filter($query, $validated);
+            $perPage = $validated['per_page'] ?? 10;
+            $offres = $query->paginate($perPage);
+            return $this->apiResponse(
+                'Liste des offres récupérée avec succès',
+                $offres,
+                200
+            );
+        } catch (\Exception $e) {
+            return $this->apiResponse('Erreur serveur', ['error' => $e->getMessage()], 500);
+        }
+    }
+    private function filter($query,$validated){
+        $query->when(isset($validated['projet_titre']), function ($q) use ($validated) {
+            $q->whereHas('projets', function ($subQ) use ($validated) {
+                $subQ->where('titre', 'LIKE', '%' . $validated['projet_titre'] . '%');
+            });
+        });
+
+        $query->when(isset($validated['montant_min']), function ($q) use ($validated) {
+            $q->where('montant_propose', '>=',(int)$validated['montant_min']);
+        });
+
+        $query->when(array_key_exists('montant_max', $validated), function ($q) use ($validated) {
+            $q->where('montant_propose', '<=', (int)$validated['montant_max']);
+        });
+
+
+        $query->when(isset($validated['statut']), function ($q) use ($validated) {
+            $q->where('statut', $validated['statut']);
+        });
+
+        $query->when(isset($validated['date_end']), function ($q) use ($validated) {
+            $q->whereBetween('created_at', [$validated['date_start'], $validated['date_end']]);
+        });
+
+        $query->when(isset($validated['sort_by']), function ($q) use ($validated) {
+            if ($validated['sort_by'] == 'date') {
+                $validated['sort_by'] = 'created_at';
+            }
+
+
+            $q->orderBy($validated['sort_by'], $validated['sort_order']);
+        }, function ($q) use ($validated) {
+            $q->orderBy('created_at', 'DESC');
+        });
+        return $query;
+    }
+
 }

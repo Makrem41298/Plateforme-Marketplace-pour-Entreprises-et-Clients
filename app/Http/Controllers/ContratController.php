@@ -13,7 +13,7 @@ class ContratController extends Controller
 {
     use apiResponse;
 
-    public function getAllContractOrFiltrage(Request $request)
+    public function getAllContractWithFiltrage(Request $request)
     {
         try {
             $validation = Validator::make($request->all(), [

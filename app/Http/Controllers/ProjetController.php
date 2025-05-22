@@ -13,9 +13,8 @@ class ProjetController extends Controller
 {
     use apiResponse;
 
-    public function getAllProjetsOrFiltrage(Request $request)
+    public function getAllProjetsWithFiltrage(Request $request)
     {
-
         try {
             $validation = Validator::make($request->all(), [
                 'titre'        => 'sometimes|string',
@@ -72,8 +71,7 @@ class ProjetController extends Controller
                     $validated['sort_field'] = 'created_at';
                 }
                 $q->orderBy($validated['sort_field'], $validated['sort_order']);
-            });
-            $query->when(!(isset($validated['sort_field'])), function ($q) use ($validated) {
+            }, function ($q) use ($validated) {
                 $q->orderBy('created_at', 'DESC');
             });
 
@@ -87,8 +85,9 @@ class ProjetController extends Controller
 
         } catch (\Exception $e) {
             return $this->apiResponse($e->getMessage(), null, 500);
-        }
-    }    public function createProjet(Request $request)
+    }
+    }
+    public function createProjet(Request $request)
     {
         try {
             $validation = Validator::make($request->all(), [
@@ -148,7 +147,16 @@ class ProjetController extends Controller
             }
 
             $client = auth()->user();
-            $projet = $client->projets()->where('slug', $slug)->firstOrFail();
+            $projet = $client->projets()
+                ->where('slug', $slug)
+                ->whereDoesntHave('offre.contrat', function ($query) {
+                    $query->where('status', '!=', 'en_attente');
+                })
+                ->first();
+
+            if ($projet === null) {
+                return $this->apiResponse('Le projet ne peut pas être modifié : ' . $slug, null, 200);
+            }
 
             $data = $validation->validated();
 
@@ -172,7 +180,17 @@ class ProjetController extends Controller
     {
         try {
             $client = auth()->user();
-            $projet = $client->projets()->where('slug', $slug)->firstOrFail();
+            $projet = $client->projets()
+                ->where('slug', $slug)
+                ->whereDoesntHave('offre.contrat', function ($query) {
+                    $query->where('status', '!=', 'en_attente');
+                })
+                ->first();
+
+            if ($projet === null) {
+                return $this->apiResponse('Le projet ne peut pas être modifié : ' . $slug, null, 200);
+            }
+
             $projet->delete();
             return $this->apiResponse('Projet supprimé avec succès', null, 200);
 

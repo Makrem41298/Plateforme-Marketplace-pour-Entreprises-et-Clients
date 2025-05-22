@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\Message;
 use App\Models\User;
 use App\Models\Entreprise;
@@ -9,6 +10,7 @@ use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -16,19 +18,7 @@ class MessageController extends Controller
 {
     use apiResponse;
 
-    /**
-     * @OA\Post(
-     *     path="/api/messages",
-     *     summary="Send a message",
-     *     @OA\Response(
-     *         response=201,
-     *         description="Message sent successfully",
-     *         @OA\JsonContent(
-     *             example={"status": "success", "message": "Message sent successfully", "data": {"id": 1, "content": "Hello!", "sender_id": 1, "sender_type": "App\Models\User", "receiver_id": 2, "receiver_type": "App\Models\Entreprise"}}
-     *         )
-     *     )
-     * )
-     */
+
     public function send(Request $request)
     {
         try {
@@ -43,9 +33,7 @@ class MessageController extends Controller
             }
 
             $userData = $this->checkUser();
-            if (!$userData['sender']) {
-                return $this->apiResponse('Unauthorized', null, 401);
-            }
+
 
 
 
@@ -59,6 +47,8 @@ class MessageController extends Controller
                 'receiver_type' => $receiverClass,
                 'content' => $validator->validated()['content']
             ]);
+            broadcast(new MessageSent($message))->toOthers();
+
 
             return $this->apiResponse('Message sent successfully', $message, 201);
 
@@ -80,13 +70,10 @@ class MessageController extends Controller
      *     )
      * )
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
             $userData = $this->checkUser();
-            if (!$userData['sender']) {
-                return $this->apiResponse('Unauthorized', null, 401);
-            }
 
             $messages = Message::where(function($query) use ($userData) {
                 $query->where('sender_id', $userData['sender']->id)
@@ -124,31 +111,30 @@ class MessageController extends Controller
     {
         try {
             $userData = $this->checkUser();
-            if (!$userData['sender']) {
-                return $this->apiResponse('Unauthorized', null, 401);
-            }
+            $sender = $userData['sender'];
+            $senderClass = get_class($sender);
 
             $receiverClass = $this->getReceiverClass($receiverType);
 
-            $messages = Message::where(function($query) use ($userData, $receiverId, $receiverClass) {
-                $query->where('sender_id', $userData['sender']->id)
-                    ->where('sender_type', get_class($userData['sender']))
+            $messages = Message::where(function ($query) use ($sender, $senderClass, $receiverId, $receiverClass) {
+                $query->where('sender_id', $sender->id)
+                    ->where('sender_type', $senderClass)
                     ->where('receiver_id', $receiverId)
                     ->where('receiver_type', $receiverClass);
             })
-                ->orWhere(function($query) use ($userData, $receiverId, $receiverClass) {
+                ->orWhere(function ($query) use ($sender, $senderClass, $receiverId, $receiverClass) {
                     $query->where('sender_id', $receiverId)
                         ->where('sender_type', $receiverClass)
-                        ->where('receiver_id', $userData['sender']->id)
-                        ->where('receiver_type', get_class($userData['sender']));
+                        ->where('receiver_id', $sender->id)
+                        ->where('receiver_type', $senderClass);
                 })
-                ->with(['sender', 'receiver'])
+                ->with(['sender', 'receiver']) // eager load relationships
                 ->orderBy('created_at', 'asc')
-                ->paginate(20);
+                ->get();
 
-            return $this->apiResponse('Conversation retrieved successfully', $messages);
+            return $this->apiResponse('Conversation retrieved successfully', $messages, 200);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->apiResponse('Failed to retrieve conversation: ' . $e->getMessage(), null, 500);
         }
     }
@@ -170,9 +156,7 @@ class MessageController extends Controller
     {
         try {
             $userData = $this->checkUser();
-            if (!$userData['sender']) {
-                return $this->apiResponse('Unauthorized', null, 401);
-            }
+
 
             $message = Message::where('receiver_id', $userData['sender']->id)
                 ->where('receiver_type', get_class($userData['sender']))
@@ -218,7 +202,6 @@ class MessageController extends Controller
         return match($receiverType) {
             'user' => User::class,
             'entreprise' => Entreprise::class,
-            'admin' => Admin::class,
             default => throw new \InvalidArgumentException('Invalid receiver type')
         };
     }

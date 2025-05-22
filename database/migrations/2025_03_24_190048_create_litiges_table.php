@@ -27,7 +27,7 @@ return new class extends Migration
                 'ferme'
             ])->default('ouvert');
 
-            $table->enum('type', [
+            $table->enum('sujet', [
                 'paiement',
                 'livraison',
                 'qualite',
@@ -36,12 +36,6 @@ return new class extends Migration
             ])->default('autre');
             //////
             $table->text('decision')->nullable()->comment('Décision finale');
-            $table->enum('resolution_type', [
-                'remboursement_partiel',
-                'remboursement_total',
-                'reparation',
-                'compensation'
-            ])->nullable();
             $table->timestamps();
         });
     }

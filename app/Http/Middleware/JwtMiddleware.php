@@ -35,11 +35,7 @@ class JwtMiddleware extends BaseMiddleware
                 $user = auth($guard)->setToken(JWTAuth::getToken())->authenticate();
                 Log::info('Authenticated user:', ['user' => $user]);
                 log::info('Authenticated user:', ['user' => $user]);
-                if ($guard!=='admin') {
-                    $status=auth($guard)->user()->status_account;
-                    if ($status==='desactiver')
-                        return $this->apiResponse('your account is suspend please contact support',null,403);
-                }
+
 
                 return $next($request);
             } catch (Exception $e) {

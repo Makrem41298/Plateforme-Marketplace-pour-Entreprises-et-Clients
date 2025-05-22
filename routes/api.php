@@ -61,7 +61,7 @@ Route::middleware('verifiedEmail')->group(function () {
     });
 
     Route::middleware('jwtAuth:entreprise,client')->group(function () {
-        Route::get('/projets', [ProjetController::class, 'getAllProjetsOrFiltrage']);
+        Route::get('/projets', [ProjetController::class, 'getAllProjetsWithFiltrage']);
         Route::get('/projets/{slug}', [ProjetController::class, 'getProjet']);
 
 
@@ -70,7 +70,9 @@ Route::middleware('verifiedEmail')->group(function () {
         Route::post('/projets', [ProjetController::class, 'createProjet']);
         Route::put('/projets/{slug}', [ProjetController::class, 'updateProjet']);
         Route::delete('/projets/{slug}', [ProjetController::class, 'deleteProjet']);
+        Route::get('/project/offers/{slug}', [OffreController::class, 'getOffreClient']);
     });
+
     Route::middleware('jwtAuth:entreprise')->group(function () {
 
         Route::get('/offres', [OffreController::class, 'getAllOffresOrFiltrage']);
@@ -80,7 +82,7 @@ Route::middleware('verifiedEmail')->group(function () {
         Route::delete('/offres/{offre_id}', [OffreController::class, 'deleteOffre']);
     });
     Route::middleware(['jwtAuth:entreprise,client'])->group(function () {
-        Route::get('/contrats', [ContratController::class, 'getAllContractOrFiltrage']);
+        Route::get('/contrats', [ContratController::class, 'getAllContractWithFiltrage']);
         Route::get('/contrats/{reference}', [ContratController::class, 'getContrat']);
         Route::put('/contrats/{reference}', [ContratController::class, 'updateContrat']);
     });
@@ -105,7 +107,7 @@ Route::middleware('verifiedEmail')->group(function () {
         Route::post('/', [LitigeController::class, 'createLitige'])->middleware('jwtAuth:client,entreprise');
         Route::delete('/{reference}', [LitigeController::class, 'destroy'])->middleware('jwtAuth:client,entreprise');
         Route::middleware('jwtAuth:entreprise,admin,client')->group(function () {
-            Route::get('/', [LitigeController::class, 'getAllLitigeOrOrFiltrage']);
+            Route::get('/', [LitigeController::class, 'getAllLitigeWithFiltrage']);
             Route::get('/{reference}', [LitigeController::class, 'getLitige']);
         });
 
