@@ -36,7 +36,7 @@ class ContratController extends Controller
 
             // Determine the query based on authenticated user type
             if (auth()->guard('entreprise')->check()) {
-                $query = Contrat::entreprise();
+                $query = Contrat::entreprise()->with('offre.projet:id,slug');
             } else {
                 $query = Contrat::clinet();
             }
@@ -171,7 +171,11 @@ class ContratController extends Controller
                 });
             }
 
-            $contrat = $query->firstOrFail();
+            $contrat = $query->with([
+                'offre.projet:id,user_id,titre,status',
+                'offre.projet.client:id,name',
+                'offre.entreprise:id,name',
+            ])->withCount('transactions')->firstOrFail();
 
             return $this->apiResponse('Contrat retrieved successfully', $contrat, 200);
 
@@ -248,10 +252,7 @@ class ContratController extends Controller
                 $query->entreprise();
             } else {
                 $query->clinet();
-                if (isset($data['statut'])&& $data['statut'] === 'signe'){
-                    $data['signe_le']=now();
-                }else
-                    $data['signe_le']=null;
+                $data['signe_le']=null;
             }
 
             $contrat = $query->firstOrFail();

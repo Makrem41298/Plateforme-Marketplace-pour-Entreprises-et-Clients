@@ -47,7 +47,6 @@ class MessageController extends Controller
                 'receiver_type' => $receiverClass,
                 'content' => $validator->validated()['content']
             ]);
-            broadcast(new MessageSent($message))->toOthers();
 
 
             return $this->apiResponse('Message sent successfully', $message, 201);

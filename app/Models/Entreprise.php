@@ -129,4 +129,6 @@ class Entreprise extends Authenticatable implements JWTSubject,MustVerifyEmail
     {
         return $this->morphMany(Message::class, 'receiver');
     }
+    // Spécifier le garde à utiliser
+
 }

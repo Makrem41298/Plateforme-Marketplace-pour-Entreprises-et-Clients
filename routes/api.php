@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthAdminController;
 use App\Http\Controllers\AuthClientController;
 use App\Http\Controllers\EntrepriseProfileController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\UserProfileController;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
@@ -68,17 +69,19 @@ Route::middleware('verifiedEmail')->group(function () {
     });
     Route::middleware('jwtAuth:client')->group(function () {
         Route::post('/projets', [ProjetController::class, 'createProjet']);
-        Route::put('/projets/{slug}', [ProjetController::class, 'updateProjet']);
         Route::delete('/projets/{slug}', [ProjetController::class, 'deleteProjet']);
         Route::get('/project/offers/{slug}', [OffreController::class, 'getOffreClient']);
     });
+    Route::put('/projets/{slug}', [ProjetController::class, 'updateProjet'])->middleware('jwtAuth:client,entreprise');
 
+
+
+    Route::put('/offres/{offre_id}', [OffreController::class, 'updateOffre'])->middleware('jwtAuth:client,entreprise');
     Route::middleware('jwtAuth:entreprise')->group(function () {
 
         Route::get('/offres', [OffreController::class, 'getAllOffresOrFiltrage']);
         Route::post('/offres', [OffreController::class, 'createOffre']);
         Route::get('/offres/{offre_id}', [OffreController::class, 'getOffre']);
-        Route::put('/offres/{offre_id}', [OffreController::class, 'updateOffre']);
         Route::delete('/offres/{offre_id}', [OffreController::class, 'deleteOffre']);
     });
     Route::middleware(['jwtAuth:entreprise,client'])->group(function () {
@@ -146,6 +149,17 @@ Route::middleware('verifiedEmail')->group(function () {
         Route::get('/conversation/{receiverId}/{receiverType}', [MessageController::class, 'conversation']);
         Route::put('/messages/{id}/read', [MessageController::class, 'markAsRead']);
     });
+
+
+
+    Route::post('/contracts/{reference}/checkout', [PaymentController::class, 'initiateCheckout']);
+
+    Route::get('/paiement/succes/{reference}', [PaymentController::class, 'success'])
+        ->name('payment.success');
+
+    Route::get('/paiement/annulation/{reference}', [PaymentController::class, 'cancel'])
+        ->name('payment.cancel');
+
 
 });
 

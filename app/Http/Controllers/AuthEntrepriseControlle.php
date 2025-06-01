@@ -50,7 +50,7 @@ class AuthEntrepriseControlle extends Controller
         try {
             $validation = Validator::make($request->all(), [
                 'name' => 'required|string|min:3',
-                'email' => 'required|email|unique:users',
+                'email' => 'required|email|unique:entreprises',
                 'password' => 'required|min:8',
                 'confirm_password' => 'required|same:password',
             ], [
@@ -69,7 +69,11 @@ class AuthEntrepriseControlle extends Controller
             }
             DB::beginTransaction();
             $enterprise=Entreprise::create($request->except('confirm_password'));
+            $enterprise->profile()->create();
+            config(['auth.defaults.guard' => 'entreprise']);
             event(new Registered($enterprise));
+            config(['auth.defaults.guard' => 'client']);
+
             DB::commit();
             return $this->apiResponse('Entreprise est creation avec succes', $enterprise,201);
 

@@ -134,20 +134,40 @@ class ProjetController extends Controller
             $validation = Validator::make($request->all(), [
                 'titre' => 'sometimes|string|min:5|max:255',
                 'description' => 'sometimes|string|min:50|max:2000',
-                'budget' => 'nullable|numeric|between:0.01,99999999.99',
+                'budget' => 'sometimes|nullable|numeric|between:0.01,99999999.99',
                 'type' => [
                     'sometimes',
                     Rule::in(Projet::getAvailableTypes())
                 ],
-                'Delai' => 'nullable|integer|min:1|max:365'
+                'Delai' => 'sometimes|nullable|integer|min:1|max:365'
             ]);
 
             if ($validation->fails()) {
                 return $this->apiResponse($validation->errors()->first(),null , 422);
             }
+            if (auth('entreprise')->check()) {
+                $enterprise = auth('entreprise')->user();
+
+                $offre = $enterprise->offre()->whereHas('projet', function ($query) use ($slug) {
+                    $query->where('slug', $slug);
+                })->first();
+
+                if (!$offre) {
+                    return $this->apiResponse('Offre ou projet introuvable', null, 404);
+                }
+
+                $projet = $offre->projet;
+
+                $projet->update([
+                    'status' => 'Termine'
+                ]);
+
+                return $this->apiResponse('Projet mis à jour avec succès', $projet->fresh(), 200);
+            }
+
 
             $client = auth()->user();
-            $projet = $client->projets()
+            $projet = $client->projet()
                 ->where('slug', $slug)
                 ->whereDoesntHave('offre.contrat', function ($query) {
                     $query->where('status', '!=', 'en_attente');
@@ -164,7 +184,9 @@ class ProjetController extends Controller
                 $data['slug'] = $this->generateUniqueSlug($request->titre, $projet->id);
             }
 
-            $projet->update($data);
+                $projet->update($data);
+
+
 
             return $this->apiResponse('Projet mis à jour avec succès', $projet->fresh(), 200);
 

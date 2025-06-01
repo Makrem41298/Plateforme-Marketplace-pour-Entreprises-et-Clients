@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Cashier\Billable;
 use SebastianBergmann\CodeCoverage\Report\Xml\Project;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property string $name
@@ -54,7 +55,7 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 class User extends Authenticatable implements JWTSubject,MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable,Billable;
 
     /**
      * The attributes that are mass assignable.

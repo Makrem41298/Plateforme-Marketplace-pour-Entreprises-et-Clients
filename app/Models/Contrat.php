@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property string $reference
@@ -71,6 +71,10 @@ class Contrat extends Model
 {
     return $this->belongsTo(Offre::class,'offer_id');
 }
+    public function transactions():HasMany
+    {
+        return $this->hasMany(Transcation::class,'contrat_id');
+    }
 public function litiges():HasMany
 {
     return $this->HasMany(Litige::class);

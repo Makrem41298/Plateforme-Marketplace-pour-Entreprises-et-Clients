@@ -12,18 +12,19 @@ return new class extends Migration {
         Schema::create('entreprise_profiles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('entreprise_id')->constrained()->onDelete('cascade');
-            $table->string('address');
-            $table->string('city');
-            $table->string('country');
-            $table->string('postal_code');
-            $table->string('phone');
-            $table->string('fax')->nullable();
-            $table->string('website')->nullable();
-            $table->text('description');
-            $table->string('sector');
-            $table->enum('company_type', ['LLC', 'SA', 'SARL', 'SNC', 'EI', 'Other']);
-            $table->string('linkedin_url')->nullable();
-            $table->integer('employees_count');
+            $table->decimal('solde',8,2)->default(0);
+            $table->string('address')->default(null)->nullable();
+            $table->string('city')->default(null)->nullable();
+            $table->string('country')->default(null)->nullable();
+            $table->string('postal_code')->default(null)->nullable();
+            $table->string('phone')->default(null)->nullable();
+            $table->string('fax')->default(null)->nullable();
+            $table->string('website')->default(null)->nullable();
+            $table->text('description')->default(null)->nullable();
+            $table->string('sector')->default(null)->nullable();
+            $table->enum('company_type', ['LLC', 'SA', 'SARL', 'SNC', 'EI', 'Other'])->default(null)->nullable();
+            $table->string('linkedin_url')->default(null)->nullable();
+            $table->integer('employees_count')->default(null)->nullable();
             $table->timestamps();
         });
     }

@@ -32,7 +32,8 @@ class MessageSent implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'chatMessage';
+        return 'message.sent';
     }
+
 
 }

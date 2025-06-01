@@ -18,6 +18,8 @@ return new class extends Migration
                 'en_attente',
                 'effctue',
             ]);
+            $table->foreignId('contrat_id')->constrained('contrats')->cascadeOnDelete();
+            $table->enum('tranch',[1,2])->default(1);
             $table->enum('methode_paiment',[
                 'carte_credit',
                 'paypal'

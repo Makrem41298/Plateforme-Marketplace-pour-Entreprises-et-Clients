@@ -25,7 +25,7 @@ class OffreController extends Controller
                 'statut' => ['sometimes', Rule::in(Offre::getAvailableStatus())],
                 'date_debut' => 'sometimes|date|before_or_equal:date_fin',
                 'date_fin' => 'sometimes|date|after_or_equal:date_debut',
-                'projet_titre' => 'sometimes|string|min:3|max:255',
+                'projet_titre'=> 'sometimes|string',
                 'sort_by' => 'sometimes|in:created_at,montant_propose,delai',
                 'sort_order' => 'sometimes|in:asc,desc',
                 'per_page' => 'sometimes|integer|min:1|max:100',
@@ -43,7 +43,7 @@ class OffreController extends Controller
             $validated = $validation->validated();
             $entreprise = auth('entreprise')->user();
             $query = Offre::with([
-                'projet.client:id,name','projet:id,user_id,slug,titre'
+                'projet.client:id,name','projet:id,user_id,slug,titre,status'
             ])->where('entreprise_id', $entreprise->id);
 
 
@@ -124,20 +124,45 @@ class OffreController extends Controller
             if ($validation->fails()) {
                 return $this->apiResponse($validation->errors()->first(), null, 422);
             }
-             $validationData=$validation->validated();
-            if (auth('entreprise')->check()){
-                if (isset($validationData['status'])) {
+
+            $validationData = $validation->validated();
+
+            // Authorization and business logic
+            if (auth('entreprise')->check()) {
+                $entreprise = auth('entreprise')->user();
+                $offre = Offre::where('entreprise_id', $entreprise->id)
+                    ->findOrFail($offre_id);
+
+                if (isset($validationData['statut'])) {
                     return $this->apiResponse(
-                        'Modification impossible modifer status les offres ',
+                        'Modification impossible : vous ne pouvez pas modifier le statut des offres',
                         null,
                         403
                     );
                 }
-                $entreprise = auth('entreprise')->user();
-                $offre = Offre::where('entreprise_id', $entreprise->id)
+            } else if (auth('client')->check()) {
+                $client = auth('client')->user();
+                $offre = Offre::whereHas('projet', function ($query) use ($client) {
+                    $query->where('user_id', $client->id);
+                })
                     ->findOrFail($offre_id);
+
+                if (!isset($validationData['statut'])) {
+                    return $this->apiResponse(
+                        'Modification impossible : seul le client peut modifier le statut',
+                        null,
+                        403
+                    );
+                }
+            } else {
+                return $this->apiResponse(
+                    'Accès non autorisé',
+                    null,
+                    401
+                );
             }
 
+            // Update only allowed fields
             $offre->update($validationData);
 
             return $this->apiResponse(
@@ -150,10 +175,9 @@ class OffreController extends Controller
             return $this->apiResponse('Offre non trouvée', null, 404);
         } catch (\Exception $e) {
             Log::error('Mise à jour offre échouée: '.$e->getMessage());
-            return $this->apiResponse('Erreur mise à jour', null, 500);
+            return $this->apiResponse('Erreur lors de la mise à jour', null, 500);
         }
     }
-
     public function deleteOffre($offre_id)
     {
         try {
@@ -201,10 +225,12 @@ class OffreController extends Controller
     public function getOffreClient($slug, Request $request)
     {
         try {
+
             $validation = Validator::make($request->all(), [
-                'montant_min' => ['sometimes', 'numeric', 'min:0', 'lt:montant_max'],
-                'montant_max' => ['sometimes', 'numeric', 'gt:montant_min'],
+                'montant_min' => 'sometimes|numeric|gte:0',
+                'montant_max' => 'sometimes|numeric|gt:montant_min',
                 'statut' => ['sometimes', Rule::in(Offre::getAvailableStatus())],
+                'enterprise_name'=>'sometimes|string',
                 'date_debut' => 'sometimes|date|before_or_equal:date_fin',
                 'date_fin' => 'sometimes|date|after_or_equal:date_debut',
                 'sort_by' => 'sometimes|in:created_at,montant_propose,delai',
@@ -227,7 +253,15 @@ class OffreController extends Controller
                 $q->where('user_id', $client->id)
                     ->where('slug', $slug);
             })->with('entreprise:id,name');
+
             $query=$this->filter($query, $validated);
+
+            $query->when(isset($validated['enterprise_name']), function ($q) use ($validated) {
+                $q->whereHas('entreprise', function ($subQ) use ($validated) {
+                    $subQ->where('name', 'LIKE', '%' . $validated['enterprise_name'] . '%');
+                });
+            });
+
             $perPage = $validated['per_page'] ?? 10;
             $offres = $query->paginate($perPage);
             return $this->apiResponse(
@@ -241,7 +275,7 @@ class OffreController extends Controller
     }
     private function filter($query,$validated){
         $query->when(isset($validated['projet_titre']), function ($q) use ($validated) {
-            $q->whereHas('projets', function ($subQ) use ($validated) {
+            $q->whereHas('projet', function ($subQ) use ($validated) {
                 $subQ->where('titre', 'LIKE', '%' . $validated['projet_titre'] . '%');
             });
         });

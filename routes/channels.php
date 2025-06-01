@@ -2,6 +2,6 @@
 
 use Illuminate\Support\Facades\Broadcast;
 
-Broadcast::channel('chat', function () {
-    return true;
+Broadcast::channel('private-chat', function ($user) {
+    return auth()->check();
 });
