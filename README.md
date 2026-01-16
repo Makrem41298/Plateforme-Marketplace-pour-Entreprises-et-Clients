@@ -1,66 +1,109 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Plateforme Marketplace B2B/B2C - Mise en relation Entreprises & Clients
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Ce projet est une plateforme de marketplace complète développée avec **Laravel 12**. Elle permet de mettre en relation des clients porteurs de projets (Développement, Design, Marketing, etc.) avec des entreprises prestataires qualifiées. L'application gère l'intégralité du flux, de la publication du projet au paiement final, en passant par la contractualisation et la messagerie en temps réel.
 
-## About Laravel
+## 🚀 Fonctionnalités Principales
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### 👥 Gestion des Rôles(Spatie) et Authentification (JWT)
+L'application gère trois types d'utilisateurs distincts avec des espaces dédiés :
+* **Clients** : Peuvent publier des projets, recevoir des offres et payer les prestations.
+* **Entreprises** : Peuvent consulter les projets, soumettre des offres (devis) et gérer leurs contrats.
+* **Administrateurs** : Disposent d'un tableau de bord pour gérer les utilisateurs, les litiges et les retraits.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 📂 Gestion des Projets
+* Publication de projets avec détails (titre, description, budget, délai, type).
+* Catégories gérées : Développement Web, Mobile, Design Graphique, Marketing Digital, IA, Conseil, etc.
+* Système de filtrage avancé pour les entreprises.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 💼 Offres et Contrats
+* Les entreprises soumettent des offres chiffrées sur les projets.
+* Génération automatique de **Contrats** dès l'acceptation d'une offre.
+* Suivi du statut du contrat (Signé, En cours, Terminé).
 
-## Learning Laravel
+### 💳 Paiements Sécurisés (Stripe)
+* Intégration de **Laravel Cashier (Stripe)**.
+* Système de paiement par tranches (ex: acompte de 30% au démarrage, solde de 70% à la livraison).
+* Portefeuille virtuel pour les entreprises et gestion des demandes de retrait.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 💬 Messagerie Temps Réel
+* Chat intégré entre Client et Entreprise via **Laravel Reverb** (WebSockets).
+* Historique des conversations et statuts de lecture.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### ⚖️ Gestion des Litiges
+* Système de déclaration de litiges sur les contrats en cours.
+* Interface d'administration pour la résolution des conflits.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠 Prérequis Techniques
 
-## Laravel Sponsors
+* PHP >= 8.2
+* Composer
+* Base de données (MySQL / MariaDB)
+* Node.js & NPM (pour Vite)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 📦 Installation
 
-### Premium Partners
+1.  **Cloner le dépôt**
+    ```bash
+    git clone [https://github.com/votre-username/plateforme-marketplace.git](https://github.com/votre-username/plateforme-marketplace.git)
+    cd plateforme-marketplace
+    ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+2.  **Installer les dépendances PHP**
+    ```bash
+    composer install
+    ```
 
-## Contributing
+3.  **Configurer l'environnement**
+    Copiez le fichier d'exemple et configurez vos accès (Base de données, Stripe, etc.) :
+    ```bash
+    cp .env.example .env
+    ```
+    *Assurez-vous de configurer les clés `STRIPE_KEY`, `STRIPE_SECRET`, et les configurations `REVERB` dans le fichier `.env`.*
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4.  **Générer les clés de sécurité**
+    Clé d'application et secret JWT :
+    ```bash
+    php artisan key:generate
+    php artisan jwt:secret
+    ```
 
-## Code of Conduct
+5.  **Base de données**
+    Exécutez les migrations et les seeders (si disponibles) :
+    ```bash
+    php artisan migrate --seed
+    ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 🚀 Démarrage
 
-## License
+Pour lancer l'application en local, vous aurez besoin de plusieurs terminaux :
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+ **Serveur Laravel**
+    ```bash
+    php artisan serve
+    ````
+
+L'API sera accessible via `http://127.0.0.1:8000/api`.
+
+## 📚 Documentation API
+
+L'API est sécurisée via JWT. Voici quelques points de terminaison clés :
+
+### Authentification
+* `POST /api/auth/client/login`
+* `POST /api/auth/entreprise/login`
+* `POST /api/auth/admin/login`
+
+### Projets
+* `GET /api/projets` : Liste des projets (filtrable).
+* `POST /api/projets` : Créer un projet (Client uniquement).
+
+### Contrats & Paiement
+* `POST /api/contracts/{reference}/checkout` : Initier un paiement Stripe pour un contrat.
+* `GET /api/paiement/succes/{reference}` : Callback de succès de paiement.
+
+### Messagerie
+* `GET /api/conversation/{receiverId}/{receiverType}` : Récupérer une conversation.
+* `POST /api/messages` : Envoyer un message.
+
